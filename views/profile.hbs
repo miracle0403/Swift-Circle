@@ -1,0 +1,66 @@
+
+{{#if errors}}
+  {{#each errors}}
+  <div class="alert alert-danger">
+    {{this.msg}}
+  </div>
+    
+  {{/each}}
+{{/if}}
+<div class="main">
+    <div class="section">
+        <div class="container">
+<!--         what is row -->
+            <div class="row tim-row">
+              <H5>EDIT PROFILE</H5>
+<form method ="POST" action ="/profile">
+<div class="form-group"
+  <label for="fullname">Full Name</label>
+  <input type="name" class="form-control" 
+id="fullname" name ="fullname" placeholder="Enter full name" value="" required />
+</div>
+<div class="form-group"
+  <label for="email">Email</label>
+  <input type="email" class="form-control" 
+id="email" name ="email" value="" required />
+</div>
+<div class="form-group">
+  <label for="countrycode">Country Code</label>
+  <select name="code" class="form-control" value="Select Country Code" id="code">
+    <option></option>
+    <option>+234</option>
+  </select>
+</div>
+<div class="form-group">
+  <label for="phone">Phone Number</label>
+  <input type="phone" class="form-control" 
+id="phone" name ="phone" placeholder="e.g 8012345678" value="" required />
+</div>
+<div class="form-group">
+  <label for="bank">Bank Name</label>
+  <select name="code" class="form-control" paceholder="Select Country Code" id="code">
+    <option></option>
+    <option>ACCESS BANK</option>
+    <option>ECO BANK</option>
+    <option>FIRST BANK</option>
+    <option>FIDELITY BANK</option>
+    <option>GTB</option>
+  </select>
+</div>
+<div class="form-group">
+  <label for="ACCOUNTname">Account Name</label>
+  <input type="text" class="form-control" 
+id="Account Name" name ="Account Name" placeholder="Enter Account Name" value="" required />
+</div>
+<div class="form-group">
+  <label for="number">Account Number</label>
+  <input type="number" class="form-control" 
+id="account_number" name ="account_nummber" placeholder="Enter your account number" value="" required />
+</div>
+<div class="form-group">
+  <button type="submit" id="editprofile" class="btn 
+btn-primary">Submit</button>
+</div>
+</form>
+</div>
+</div>        

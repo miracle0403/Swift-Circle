@@ -1,0 +1,29 @@
+<div class="main">
+    <div class="section">
+        <div class="container">
+<!--         what is row -->
+            <div class="row tim-row">
+                <h2>Your sponsor is {{sponsor}} and your referral link is <a href="{{link}}">{{link}} </a> <br/> link to your registration page is <a href="{{register}}">{{register}}</a> </h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="main">
+    <div class="section">
+        <div class="container">
+<!--         what is row -->
+            <div class="row tim-row">
+                {{#if referrals}}
+                    {{#each referrals}}
+                    <h4>{{full_name}}</h4>
+                    <ul>
+                        <li>{{username}}</li>
+                        <li>{{email}}</li>
+                        <li>{{code}}{{phone}}</li>
+                    </ul>
+                    {{/each}}
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
