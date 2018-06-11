@@ -9,6 +9,7 @@ var mysql = require('mysql');
 
 //Authentication packages
 var bcrypt = require('bcrypt');
+var securePin = require('secure-pin');
 var passport = require('passport');
 var localStrategy = require('passport-local'),Strategy;
 var session = require('express-session');

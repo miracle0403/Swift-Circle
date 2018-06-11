@@ -12,17 +12,29 @@
     <div class="section">
         <div class="container">
 <!--         what is row -->
-            <div class="row tim-row">
-                {{#if referrals}}
+            <div class="row tim-row">    
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Date of joining</th>
+                    </tr>
+                    {{#if referrals}}
                     {{#each referrals}}
-                    <h4>{{full_name}}</h4>
-                    <ul>
-                        <li>{{username}}</li>
-                        <li>{{email}}</li>
-                        <li>{{code}}{{phone}}</li>
-                    </ul>
+                    <tr>
+                        <td>{{name}}</td>
+                        <td>{{email}}</td>
+                        <td>{{code}}{{phone}}</td>
+                        <td>{{username}}</td>
+                        <td>{{status}}</td>
+                        <td>{{date_joined}}</td>
+                    </tr>
                     {{/each}}
-                {{/if}}
+                    {{/if}}
+                    </table>
             </div>
         </div>
     </div>
