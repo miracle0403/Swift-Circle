@@ -14,7 +14,7 @@ const saltRounds = 15;
 router.get('/', function(req, res, next) {
   console.log(req.user)
   console.log(req.isAuthenticated())
-  res.render('index', { title: 'SWIFT CIRCLE' });
+  res.render('index', { title: 'SWIFT EMPOWER' });
 });
 
 // get join
@@ -39,7 +39,7 @@ router.get('/addFlash', function (req, res) {
 });
 
 //get register with referral link
-router.get('/:username/register', function(req, res, next) {
+router.get('/register/:username', function(req, res, next) {
   const db = require('../db.js');
   var username = req.params.username;
   // get the list of supported countries
@@ -104,7 +104,7 @@ router.get('/referrals', authentificationMiddleware(), function(req, res, next) 
     });
   });
 });
-
+ 
 
 //get logout
 router.get('/logout', function(req, res, next) {
@@ -131,7 +131,18 @@ router.get('/dashboard', authentificationMiddleware(), function(req, res, next) 
 
 //get profile
 router.get('/profile', authentificationMiddleware(), function(req, res, next) {
-  res.render('profile', {title: 'PROFILE'});
+  var currentUser = req.session.passport.user.user_id;
+  //get user details to showcase
+  db.query('SELECT * FROM user WHERE user_id = ?', [currentUser], function(err, results, fields){
+    if (err) throw err;
+    console.log(results)
+    //get from profile table
+    db.query('SELECT * FROM profile WHERE user_id = ?', [currentUser], function(err, results, fields){
+      if (err) throw err;
+      console.log(results)
+      res.render('profile', {title: 'PROFILE'});
+    });
+  });
 });
 
 
@@ -166,7 +177,7 @@ router.post('/register', function(req, res, next) {
     var sponsor = req.body.sponsor;
     var fullname = req.body.fullname;
     var code = req.body.code;
-    var phone = req.body.phone
+    var phone = req.body.phone;
 
     var db = require('../db.js');
     
@@ -175,23 +186,27 @@ router.post('/register', function(req, res, next) {
       if (err) throw err;
       if(results.length===0){
         var sponsor = "This Sponsor does not exist"
+        console.log(sponsor);
         res.render('register', {title: "REGISTRATION FAILED", sponsor: sponsor});
       }else{
         db.query('SELECT username FROM user WHERE username = ?', [username], function(err, results, fields){
           if (err) throw err;
           if(results.length===1){
             var error = "Sorry, this username is taken";
+            console.log(error)
             res.render('register', {title: "REGISTRATION FAILED", error: error});
           }else{
-            db.query('SELECT email FROM user WHERE email = ?', [email], function(err, results, fields){
+            db.query('SELECT email FROM user WHERE email = ?', [email], function(err, results, fields){ 
               if (err) throw err;
-              if(results.length===1){
-                var emailTaken = "Sorry, this email is taken";
+              if(results.length===1){ 
+                var error = "Sorry, this email is taken";
+                console.log(error);
                 res.render('register', {title: "REGISTRATION FAILED", email: emailTaken});
               }else{
                 bcrypt.hash(password, saltRounds, function(err, hash){
-                  db.query('INSERT INTO user (full_name, phone, code, username, email, sponsor, password, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [fullname, phone, code, username, email, sponsor, hash, 0], function(error, result, fields){
+                  db.query('INSERT INTO user (sponsor, full_name, phone, code, username, email, password, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [sponsor, fullname, phone, code, username, email, hash, 0], function(error, result, fields){
                     if (error) throw error;
+                    console.log(results);
                     res.render('register', {title: "REGISTRATION SUCCESSFUL"});  
                   });
                 });
@@ -239,12 +254,13 @@ router.post('/login', passport.authenticate('local', {
 }));
 
 //post profile
-router.get('/profile', function(req, res, next) {
+router.post('/profile', function(req, res, next) {
   console.log(req.body) 
   req.checkBody('fullname', 'Full Name must be between 8 to 25 characters').len(8,25);
   req.checkBody('email', 'Email must be between 8 to 25 characters').len(8,25);
   req.checkBody('email', 'Invalid Email').isEmail();
   req.checkBody('code', 'Country code must not be empty.').notEmpty();
+  req.checkBody('account_number', 'Account Number must not be empty.').notEmpty();
   req.checkBody('phone', 'Phone Number must be ten characters').len(10);
   //req.checkBody('pass1', 'Password must have upper case, lower case, symbol, and number').matches(/^(?=,*\d)(?=, *[a-z])(?=, *[A-Z])(?!, [^a-zA-Z0-9]).{8,}$/, "i")
  
@@ -252,21 +268,66 @@ router.get('/profile', function(req, res, next) {
 
   if (errors) { 
     console.log(JSON.stringify(errors));
-    res.render('register', { title: 'REGISTRATION FAILED', errors: errors});
+    res.render('register', { title: 'UPDATE FAILED', errors: errors});
     //return noreg
   }
   else {
-    var password = req.body.pass1;
+    var password = req.body.password;
     var email = req.body.email;
     var fullname = req.body.fullname;
     var code = req.body.code;
     var phone = req.body.phone;
     var bank = req.body.bank;
-    var phone = req.body.AccountName;
-    var phone = req.body.account_number
-    res.render('profile', { title: 'Profile'});
+    var accountName = req.body.AccountName;
+    var accountNumber = req.body.account_number;
+    var currentUser = req.session.passport.user.user_id;
+
+    //get sponsor name from database to profile page
+    db.query('SELECT password FROM user WHERE user_id = ?', [currentUser], function(err, results, fields){
+      if (err) throw err;
+      const hash = results[0].password;
+      //compare password
+      bcrypt.compare(password, hash, function(err, response){
+        if(response === false){
+          res.render('profile', { title: 'Profile Update failed', error: "Password is not correct"});
+        }else{
+          //check if email exist
+          db.query('SELECT email FROM user WHERE email = ?', [email], function(err, results, fields){
+            if (err) throw err;
+
+            if (results.length===1){
+              console.log('email exists')
+              res.render('profile', { title: 'Profile Update failed', error: "Email exist in the database"});
+            }else{
+              //update user
+              db.query('UPDATE user SET email = ?, full_name = ?, code = ?, phone = ? WHERE user_id = ?', [email, fullname, code, phone, currentUser], function(err, results,fields){
+                if (err) throw err;
+
+                //check if user has updated profile before now
+                db.query('SELECT user_id FROM profile WHERE user_id = ?', [currentUser], function(err, results, fields){
+                  if (err) throw err;
+      
+                  if (results.length===0){
+                    db.query('INSERT INTO profile (user_id, bank, account_name, account_number) VALUES (?, ?, ?, ?)', [currentUser, bank, accountName, accountNumber], function(error, result, fields){
+                      if (error) throw error;
+                      console.log(results);
+                      res.render('profile', {title: "UPDATE SUCCESSFUL"});  
+                    });
+                  }else{
+                    db.query('UPDATE profile SET bank = ?, account_name = ?, account_number = ? WHERE user_id = ?', [bank, accountName, accountNumber, currentUser], function(err, results,fields){
+                      if (err) throw err;
+                      console.log(results);
+                      res.render('profile', {title: "UPDATE SUCCESSFUL"});  
+                    });
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    });
   }
 });
-
 
 module.exports = router;

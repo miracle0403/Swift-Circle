@@ -12,7 +12,7 @@
         <div class="container">
 <!--         what is row -->
             <div class="row tim-row">
-              <H5>{{title}}</H5>
+              <H5>{{title}}</H5>required
 <form method ="POST" action ="/register">
    <div class="form-group">
     <label for="sponsor">Sponsor</label>
@@ -40,13 +40,13 @@ never share your email with anyone else.</small>
   <select name="code" class="form-control" value="Select Country Code" id="code">
     <option></option>
     {{#each country}}
-      <option>{{code}} {{name}} </option>
+      <option>{{code}}</option>
     {{/each}}
   </select>
 </div>
 <div class="form-group">
   <label for="phone">Phone Number</label>
-  <input type="phone" class="form-control" 
+  <input type="tel" class="form-control" 
 id="phone" name ="phone" placeholder="e.g 8012345678" value="" required />
 </div>
   <div class="form-group">
