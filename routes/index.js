@@ -227,17 +227,26 @@ passport.deserializeUser(function(user_id, done){
   done(null, user_id)
 });
 
-// get pin
-securePin.generatePin(10, function(pin){
-  console.log("Pin: "+ pin);
-});
 
-// get serial
-securePin.generateString(15, charSet, function(str){
-  console.log(str);
-});
-
-//authentication middleware snippet
+//get function for pin and serial number
+function pin(){
+  var charSet = new securePin.CharSet();
+  charSet.addLowerCaseAlpha().addUpperCaseAlpha().addNumeric().randomize();
+  securePin.generatePin(10, function(pin){
+    console.log("Pin: "+ pin);
+    securePin.generateString(15, charSet, function(str){
+      console.log(str);
+      bcrypt.hash(pin, saltRounds, function(err, hash){
+        db.query('INSERT INTO pin (pin, serial) VALUES (?, ?)', [hash, str], function(error, results, fields){
+          if (error) throw error;
+          console.log(results)
+        });
+      });
+    });
+  });
+}
+pin(); 
+//authentication middleware snippet 
 function authentificationMiddleware(){
   return (req, res, next) => {
     console.log(JSON.stringify(req.session.passport));
@@ -246,6 +255,7 @@ function authentificationMiddleware(){
   res.redirect('/login'); 
   } 
 }
+
 
 //post log in
 router.post('/login', passport.authenticate('local', {
@@ -268,8 +278,8 @@ router.post('/profile', function(req, res, next) {
 
   if (errors) { 
     console.log(JSON.stringify(errors));
-    res.render('register', { title: 'UPDATE FAILED', errors: errors});
-    //return noreg
+    res.render('profile', { title: 'UPDATE FAILED', errors: errors});
+
   }
   else {
     var password = req.body.password;
@@ -329,5 +339,33 @@ router.post('/profile', function(req, res, next) {
     });
   }
 });
+// post join
+router.post('/join', function (req, res, next) {
+  var pin = req.body.pin;
+  var serial = req.body.serial;
+  var currentUser = req.session.passport.user.user_id;
 
+  //get the particular serial and pin from the database
+  db.query('SELECT * FROM pin WHERE serial = ?', [serial], function(err, results, fields){
+    if (err) throw err;
+    console.log(results)
+    const hash = results[0].pin;
+    bcrypt.compare(pin, hash, function(err, response){
+      if(response === false){
+        res.render('join', {title: 'MATRIX ENTRANCE UNSUSSESSFUL!'})
+      }else{
+        var user = results[0].user_id;
+        if(user !== null){
+          res.render('join', {title: 'MATRIX ENTRANCE UNSUSSESSFUL!'})
+        }else{
+          db.query('UPDATE pin SET user_id = ? WHERE serial = ?', [currentUser, serial], function(err, results,fields){
+            if (err) throw err;
+            console.log(results);
+            res.render('join', {title: 'success'})
+          });
+        }
+      }
+    });
+  });
+});
 module.exports = router;
